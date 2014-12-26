@@ -10,3 +10,5 @@
 *.lastbuildstate
 *.obj
 *.user
+*.aps
+*.res
