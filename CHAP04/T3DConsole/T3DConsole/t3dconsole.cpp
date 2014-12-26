@@ -17,6 +17,7 @@
 #include <math.h>
 #include <io.h>
 #include <fcntl.h>
+#include "resource.h"
 
 // DEFINES ////////////////////////////////////////////////
 
@@ -151,12 +152,12 @@ winclass.lpfnWndProc	= WindowProc;
 winclass.cbClsExtra		= 0;
 winclass.cbWndExtra		= 0;
 winclass.hInstance		= hinstance;
-winclass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);
+winclass.hIcon			= LoadIcon(hinstance, MAKEINTRESOURCE(ID_ICON1));
 winclass.hCursor		= LoadCursor(NULL, IDC_ARROW); 
 winclass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 winclass.lpszMenuName	= NULL;
 winclass.lpszClassName	= WINDOW_CLASS_NAME;
-winclass.hIconSm        = LoadIcon(NULL, IDI_APPLICATION);
+winclass.hIconSm        = LoadIcon(hinstance, MAKEINTRESOURCE(ID_ICON1));
 
 // save hinstance in global
 hinstance_app = hinstance;
