@@ -115,9 +115,9 @@ void Logout(char *log)
 	errno_t err = fopen_s(&file, "1.log", "a");
 	if(err)
 	{
-		MessageBox(NULL, "Fail to open file",
-						 "Error",
-						  MB_OK | MB_ICONERROR);
+		//MessageBox(NULL, "Fail to open file",
+		//				 "Error",
+		//				  MB_OK | MB_ICONERROR);
 		return;
 	}
 	
