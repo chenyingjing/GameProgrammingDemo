@@ -112,9 +112,21 @@ HAPPY_FACE happy_faces[FACECOUNT]; // this holds all the happy faces
 void Logout(char *log)
 {
 	FILE *file = NULL;
-	fopen_s(&file, "C:\\Users\\aa64\\Desktop\\1.log", "a");
+	errno_t err = fopen_s(&file, "1.log", "a");
+	if(err)
+	{
+		MessageBox(NULL, "Fail to open file",
+						 "Error",
+						  MB_OK | MB_ICONERROR);
+		return;
+	}
+	
 	fprintf_s(file, "%s\n", log);
-	fclose(file);
+	if (file)
+	{
+		fclose(file);
+		file = NULL;
+	}
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, 
@@ -444,11 +456,11 @@ int WINAPI WinMain(	HINSTANCE hinstance,
 					LPSTR lpcmdline,
 					int ncmdshow)
 {
-Logout("WinMain start ---------------------------------");
-
 MessageBox(NULL, "THERE CAN BE ONLY ONE!!!",
                  "MY FIRST WINDOWS PROGRAM",
                   MB_OK | MB_ICONEXCLAMATION);
+
+Logout("WinMain start ---------------------------------");
 
 WNDCLASSEX winclass; // this will hold the class we create
 HWND	   hwnd;	 // generic window handle
