@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D86HTML5TranslateScaleRotate", "D86HTML5TranslateScaleRotate\D86HTML5TranslateScaleRotate.csproj", "{5DC31A52-D8C1-4658-8359-F7C73333522E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DC31A52-D8C1-4658-8359-F7C73333522E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC31A52-D8C1-4658-8359-F7C73333522E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC31A52-D8C1-4658-8359-F7C73333522E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC31A52-D8C1-4658-8359-F7C73333522E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
