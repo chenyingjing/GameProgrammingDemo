@@ -60,7 +60,8 @@
 #define WINDOW_WIDTH      640   // size of window
 #define WINDOW_HEIGHT     480
 
-#define WINDOW_BPP        16    // bitdepth of window (8,16,24 etc.)
+//#define WINDOW_BPP        16    // bitdepth of window (8,16,24 etc.)
+#define WINDOW_BPP        8    // bitdepth of window (8,16,24 etc.)
                                 // note: if windowed and not
                                 // fullscreen then bitdepth must
                                 // be same as system bitdepth
