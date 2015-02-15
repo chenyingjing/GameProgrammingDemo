@@ -4817,7 +4817,7 @@ else
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline void Draw_QuadFP_2D(int x0,int y0,
+void Draw_QuadFP_2D(int x0,int y0,
                     int x1,int y1,
                     int x2,int y2,
                     int x3, int y3,

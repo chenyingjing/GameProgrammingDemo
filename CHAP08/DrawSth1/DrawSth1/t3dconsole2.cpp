@@ -350,6 +350,8 @@ return(0);
 // draw the triangle
 Draw_Triangle_2D(100, 0, 0, 100, 200, 100, 100,(UCHAR *)ddsd.lpSurface, ddsd.lPitch);
 Draw_Clip_Line(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 200,(UCHAR *)ddsd.lpSurface, ddsd.lPitch);
+const int DY1 = 120;
+Draw_QuadFP_2D(0, 0 + DY1, 100, 0 + DY1, 100, 100 + DY1, 0, 100 + DY1, 101, (UCHAR *)ddsd.lpSurface, ddsd.lPitch);
 
 // unlock primary buffer
 if (FAILED(lpddsback->Unlock(NULL)))
@@ -375,3 +377,4 @@ return(1);
 } // end Game_Main
 
 //////////////////////////////////////////////////////////
+
