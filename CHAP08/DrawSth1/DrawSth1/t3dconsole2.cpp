@@ -81,6 +81,9 @@ int Game_Init(void *parms=NULL);
 int Game_Shutdown(void *parms=NULL);
 int Game_Main(void *parms=NULL);
 
+void ShowColorInPalette(UCHAR * lpSurface, LONG lPitch);
+void DrawPolygon(UCHAR * lpSurface, LONG lPitch);
+
 // GLOBALS ////////////////////////////////////////////////
 
 HWND main_window_handle           = NULL; // save the window handle
@@ -279,7 +282,7 @@ if (!WINDOWED_APP)
 srand(Start_Clock());
 
 // all your initialization code goes here...
-
+Build_Sin_Cos_Tables();
 
 // return success
 return(1);
@@ -349,9 +352,12 @@ return(0);
 
 // draw the triangle
 Draw_Triangle_2D(100, 0, 0, 100, 200, 100, 100,(UCHAR *)ddsd.lpSurface, ddsd.lPitch);
+
+ShowColorInPalette((UCHAR *)ddsd.lpSurface, ddsd.lPitch);
+
+DrawPolygon((UCHAR *)ddsd.lpSurface, ddsd.lPitch);
+
 Draw_Clip_Line(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 200,(UCHAR *)ddsd.lpSurface, ddsd.lPitch);
-const int DY1 = 120;
-Draw_QuadFP_2D(0, 0 + DY1, 100, 0 + DY1, 100, 100 + DY1, 0, 100 + DY1, 101, (UCHAR *)ddsd.lpSurface, ddsd.lPitch);
 
 // unlock primary buffer
 if (FAILED(lpddsback->Unlock(NULL)))
@@ -375,6 +381,72 @@ if (KEY_DOWN(VK_ESCAPE) || keyboard_state[DIK_ESCAPE])
 return(1);
  
 } // end Game_Main
+
+void ShowColorInPalette(UCHAR * lpSurface, LONG lPitch)
+{
+	const int WH = 10;
+	int dx = 0;
+	int dy = 0;
+	for (int i = 0; i < MAX_COLORS_PALETTE; i++)
+	{
+		if (dx >= WINDOW_WIDTH)
+		{
+			dx = 0;
+			dy += WH;
+		}
+		Draw_QuadFP_2D(0 + dx, 0 + dy,
+			WH + dx, 0 + dy,
+			WH + dx, WH + dy,
+			0 + dx, WH + dy,
+			i, lpSurface, lPitch);
+		dx += WH;
+	}
+}
+
+void DrawPolygon(UCHAR * lpSurface, LONG lPitch)
+{
+	POLYGON2D fivePoly = {0};
+	fivePoly.num_verts = 5;
+	fivePoly.color = MAX_COLORS_PALETTE - 7;
+	static int fivePolyX0 = WINDOW_WIDTH / 3;
+	static int fivePolyY0 = WINDOW_HEIGHT / 2;
+	fivePoly.x0 = fivePolyX0;
+	fivePoly.y0 = fivePolyY0;
+
+	VERTEX2DF fiveVert[5] = {0};
+	fiveVert[0].x = -100;
+	fiveVert[0].y = -50;
+	fiveVert[1].x = 0;
+	fiveVert[1].y = -100;
+	fiveVert[2].x = 100;
+	fiveVert[2].y = -50;
+	fiveVert[3].x = 70;
+	fiveVert[3].y = 60;
+	fiveVert[4].x = -70;
+	fiveVert[4].y = 60;
+	fivePoly.vlist = fiveVert;
+
+	//Translate_Polygon2D(&fivePoly, 10, 0);
+	static int theta = 0;
+	Rotate_Polygon2D(&fivePoly, theta);
+	Draw_Filled_Polygon2D(&fivePoly, lpSurface, lPitch);
+
+/////////////////////////////////////////////////////////////
+
+	fivePolyX0 += 10;
+	if (fivePolyX0 > WINDOW_WIDTH)
+	{
+		fivePolyX0 = 0;
+	}
+	fivePolyY0 += 10;
+	if (fivePolyY0 >= WINDOW_HEIGHT)
+	{
+		fivePolyY0 = 120;
+	}
+
+	theta += 1;
+}
+
 
 //////////////////////////////////////////////////////////
 
