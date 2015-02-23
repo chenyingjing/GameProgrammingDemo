@@ -9,3 +9,5 @@ DINPUT.LIB
 Dinput8.lib
 DSOUND.LIB
 Winmm.lib
+
+复制调色板定义文件PALDATA2.PAL到当前目录
