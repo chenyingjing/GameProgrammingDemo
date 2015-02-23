@@ -1,0 +1,11 @@
+字符集
+系统->最低版本
+VC++目录 包含目录 库目录
+C/C++预处理器 预处理器定义
+
+连接器 输入 附加依赖项
+DDraw.lib
+DINPUT.LIB
+Dinput8.lib
+DSOUND.LIB
+Winmm.lib
