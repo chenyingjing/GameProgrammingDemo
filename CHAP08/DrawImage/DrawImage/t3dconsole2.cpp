@@ -72,9 +72,11 @@
 #define WINDOWED_APP      0     // 0 not windowed, 1 windowed
 #define FLOOR_COLOR       116
 
-BITMAP_FILE g_bitmap_file = {0};
-BITMAP_IMAGE g_ship;
+BITMAP_FILE g_bitmap_landscape1 = {0};
+BITMAP_IMAGE g_background1;
 
+BITMAP_FILE g_bitmap_Quensp0 = {0};
+BITMAP_IMAGE g_Quensp0;
 
 // PROTOTYPES /////////////////////////////////////////////
 
@@ -281,11 +283,16 @@ if (!WINDOWED_APP)
 srand(Start_Clock());
 
 // all your initialization code goes here...
-Load_Bitmap_File(&g_bitmap_file, "landscape1.bmp");
-Create_Bitmap(&g_ship, 0, 0, 640, 480);
-Load_Image_Bitmap(&g_ship, &g_bitmap_file, 0, 0, BITMAP_EXTRACT_MODE_ABS);
+Load_Bitmap_File(&g_bitmap_landscape1, "landscape1.bmp");
+Create_Bitmap(&g_background1, 0, 0, 640, 480);
+Load_Image_Bitmap(&g_background1, &g_bitmap_landscape1, 0, 0, BITMAP_EXTRACT_MODE_ABS);
 
-Set_Palette(g_bitmap_file.palette);
+Load_Bitmap_File(&g_bitmap_Quensp0, "Quensp0.bmp");
+Create_Bitmap(&g_Quensp0, 100, 100, 72, 74);
+Load_Image_Bitmap(&g_Quensp0, &g_bitmap_Quensp0, 0, 1, BITMAP_EXTRACT_MODE_CELL);
+
+
+//Set_Palette(g_bitmap_landscape1.palette);
 
 ShowCursor(FALSE);
 
@@ -304,8 +311,11 @@ int Game_Shutdown(void *parms)
 // shut everything down
 
 // release all your resources created for the game here....
-Destroy_Bitmap(&g_ship);
-Unload_Bitmap_File(&g_bitmap_file);
+Destroy_Bitmap(&g_background1);
+Unload_Bitmap_File(&g_bitmap_landscape1);
+
+Destroy_Bitmap(&g_Quensp0);
+Unload_Bitmap_File(&g_bitmap_Quensp0);
 
 // now directsound
 DSound_Stop_All_Sounds();
@@ -358,15 +368,22 @@ DInput_Read_Keyboard();
 		return(0);
 
 
-	Draw_Bitmap(&g_ship, (UCHAR *)ddsd.lpSurface, ddsd.lPitch, 0);
+	Draw_Bitmap(&g_background1, (UCHAR *)ddsd.lpSurface, ddsd.lPitch, 0);
+Set_Palette(g_bitmap_landscape1.palette);
+	Draw_Bitmap(&g_Quensp0, (UCHAR *)ddsd.lpSurface, ddsd.lPitch, 1);
+Set_Palette(g_bitmap_landscape1.palette);
+//Set_Palette(g_bitmap_Quensp0.palette);
+//Set_Palette(palette);
+
+	Scroll_Bitmap(&g_background1, -1, 0);
 
 	// unlock primary buffer
 	if (FAILED(lpddsback->Unlock(NULL)))
 		return(0);
 
-//glow.peGreen = rand()%256;
+glow.peGreen = rand()%256;
 //Set_Palette_Entry(FLOOR_COLOR, &glow);
-Set_Palette(g_bitmap_file.palette);
+//Set_Palette(g_bitmap_landscape1.palette);
 
 // flip the surfaces
 DDraw_Flip();
