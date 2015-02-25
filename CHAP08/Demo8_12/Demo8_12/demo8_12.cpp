@@ -492,6 +492,8 @@ Draw_Text_GDI("USE ARROW KEYS TO MOVE, <ESC> to Exit.",8,8,RGB(0,255,0),lpddsbac
 sprintf(buffer,"World Position = [%d, %d]  Objects Visible = %d, Objects Clipped = %d   ", world_x, world_y, visible, 256 - visible);
 Draw_Text_GDI(buffer,8,screen_height - 32,RGB(0,255,0),lpddsback);
 
+Set_Palette(bitmap8bit.palette);
+
 // flip the surfaces
 DDraw_Flip();
 
