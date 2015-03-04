@@ -85,6 +85,8 @@ char buffer[256];                          // used to print text
 
 BITMAP_FILE g_bitmap_Quensp0 = {0};
 BOB g_quensp0 = {0};
+BOB g_quenspMul = {0};
+BOB g_quenspAnim = {0};
 
 
 // FUNCTIONS //////////////////////////////////////////////
@@ -287,6 +289,40 @@ if (!Create_BOB(&g_quensp0, 0, 0, 72, 74, 1, BOB_ATTR_VISIBLE | BOB_ATTR_SINGLE_
 }
 Load_Frame_BOB(&g_quensp0, &g_bitmap_Quensp0, 0, 0, 0, BITMAP_EXTRACT_MODE_CELL);
 
+
+if (!Create_BOB(&g_quenspMul, 0, 75, 72, 74, 6, BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_FRAME, 0))
+{
+	Write_Error("Fail to create g_quenspMul.");
+}
+for (int i = 0; i < 4; i++)
+{
+	Load_Frame_BOB(&g_quenspMul, &g_bitmap_Quensp0, i, i, 0, BITMAP_EXTRACT_MODE_CELL);
+}
+Load_Frame_BOB(&g_quenspMul, &g_bitmap_Quensp0, 4, 1, 0, BITMAP_EXTRACT_MODE_CELL);
+Load_Frame_BOB(&g_quenspMul, &g_bitmap_Quensp0, 5, 1, 1, BITMAP_EXTRACT_MODE_CELL);
+
+if (!Create_BOB(&g_quenspAnim, 0, 75*2, 72, 74, 6, BOB_ATTR_VISIBLE | BOB_ATTR_MULTI_ANIM, 0))
+{
+	Write_Error("Fail to create g_quenspAnim.");
+}
+g_quenspAnim.xv = 1;
+g_quenspAnim.yv = 1;
+for (int i = 0; i < 4; i++)
+{
+	Load_Frame_BOB(&g_quenspAnim, &g_bitmap_Quensp0, i, i, 0, BITMAP_EXTRACT_MODE_CELL);
+}
+Load_Frame_BOB(&g_quenspAnim, &g_bitmap_Quensp0, 4, 1, 0, BITMAP_EXTRACT_MODE_CELL);
+Load_Frame_BOB(&g_quenspAnim, &g_bitmap_Quensp0, 5, 1, 1, BITMAP_EXTRACT_MODE_CELL);
+
+int anim_walk[] = {0, 1, 2, 1, 0};
+Load_Animation_BOB(&g_quenspAnim, 0, sizeof(anim_walk)/sizeof(anim_walk[0]), anim_walk);
+
+int anim_fire[] = {5, 6, 0};
+Load_Animation_BOB(&g_quenspAnim, 1, sizeof(anim_fire)/sizeof(anim_fire[0]), anim_fire);
+
+Set_Animation_BOB(&g_quenspAnim, 1);
+Set_Anim_Speed_BOB(&g_quenspAnim, 5);
+Set_Anim_Speed_BOB(&g_quenspMul, 5);
 // return success
 return(1);
 
@@ -303,7 +339,9 @@ int Game_Shutdown(void *parms)
 
 // release all your resources created for the game here....
 	Unload_Bitmap_File(&g_bitmap_Quensp0);
+	Destroy_BOB(&g_quenspAnim);
 	Destroy_BOB(&g_quensp0);
+	Destroy_BOB(&g_quenspMul);
 
 Close_Error_File();
 
@@ -348,10 +386,20 @@ DDraw_Fill_Surface(lpddsback, 0);
 DInput_Read_Keyboard();
 
 // game logic here...
-//g_quensp0.x = 50;
-//g_quensp0.y = 50;
-//g_quensp0.curr_frame = 0;
 Draw_BOB(&g_quensp0, lpddsback);
+
+g_quenspMul.x = 50;
+g_quenspMul.y = 50;
+//g_quenspMul.curr_frame = 1;
+Animate_BOB(&g_quenspMul);
+Draw_BOB(&g_quenspMul, lpddsback);
+
+Animate_BOB(&g_quenspAnim);
+//Draw_BOB(&g_quenspAnim, lpddsback);
+Draw_Scaled_BOB(&g_quenspAnim, 200, 200, lpddsback);
+Move_BOB(&g_quenspAnim);
+
+
 Set_Palette(g_bitmap_Quensp0.palette);
 
 
