@@ -35,8 +35,10 @@
 // defines for windows 
 #define WINDOW_CLASS_NAME "WINXCLASS"  // class name
 
-#define WINDOW_WIDTH    320  // size of window
-#define WINDOW_HEIGHT   240
+#define WINDOW_WIDTH    SCREEN_WIDTH  // size of window
+#define WINDOW_HEIGHT   SCREEN_HEIGHT
+
+#define WINDOWED_APP      0     // 0 not windowed, 1 windowed
 
 // defines for particle system
 #define PARTICLE_STATE_DEAD               0
@@ -99,14 +101,9 @@ int Game_Main(void *parms = NULL);
 
 void Init_Reset_Particles(void);
 void Draw_Particles(void);
-void Move_Particles(void);
+void Process_Particles(void);
 void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv);
-void Start_Particle_Explosion(int type, int color, int count,
-	int x, int y, int xv, int yv, int num_particles);
-void Start_Particle_Water(int type, int color, int count,
-	int x, int y, int xv, int yv, int num_particles);
-
-void Start_Particle_Ring(int type, int color, int count,
+void Start_Particle_Water(int color, int count,
 	int x, int y, int xv, int yv, int num_particles);
 
 // GLOBALS ////////////////////////////////////////////////
@@ -116,7 +113,7 @@ HINSTANCE main_instance = NULL; // save the instance
 char buffer[256];                 // used to print text
 
 float particle_wind = 0;    // assume it operates in the X direction
-float particle_gravity = .02; // assume it operates in the Y direction
+float particle_gravity = .5; // assume it operates in the Y direction
 
 PARTICLE particles[MAX_PARTICLES]; // the particles for the particle engine
 
@@ -201,7 +198,7 @@ int WINAPI WinMain(HINSTANCE hinstance,
 	// create the window, note the use of WS_POPUP
 	if (!(hwnd = CreateWindow(WINDOW_CLASS_NAME, // class
 		"Collision Demo",	 // title
-		WS_POPUP | WS_VISIBLE,
+		(WINDOWED_APP ? (WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION) : (WS_POPUP | WS_VISIBLE)),
 		0, 0,	   // x,y
 		WINDOW_WIDTH,  // width
 		WINDOW_HEIGHT, // height
@@ -214,6 +211,36 @@ int WINAPI WinMain(HINSTANCE hinstance,
 	// save the window handle and instance in a global
 	main_window_handle = hwnd;
 	main_instance = hinstance;
+
+	if (WINDOWED_APP)
+	{
+		// now resize the window, so the client area is the actual size requested
+		// since there may be borders and controls if this is going to be a windowed app
+		// if the app is not windowed then it won't matter
+		RECT window_rect = { 0, 0, WINDOW_WIDTH - 1, WINDOW_HEIGHT - 1 };
+
+
+		// make the call to adjust window_rect
+		AdjustWindowRectEx(&window_rect,
+			GetWindowStyle(main_window_handle),
+			GetMenu(main_window_handle) != NULL,
+			GetWindowExStyle(main_window_handle));
+
+		// save the global client offsets, they are needed in DDraw_Flip()
+		window_client_x0 = -window_rect.left;
+		window_client_y0 = -window_rect.top;
+
+		// now resize the window with a call to MoveWindow()
+		MoveWindow(main_window_handle,
+			0, // x position
+			0, // y position
+			window_rect.right - window_rect.left, // width
+			window_rect.bottom - window_rect.top, // height
+			FALSE);
+
+		// show the window, so there's no garbage on first render
+		ShowWindow(main_window_handle, SW_SHOW);
+	} // end if windowed
 
 	// perform all game console specific initialization
 	Game_Init();
@@ -262,7 +289,7 @@ int Game_Init(void *parms)
 	srand(Start_Clock());
 
 	// start up DirectDraw (replace the parms as you desire)
-	DDraw_Init(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP);
+	DDraw_Init(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, WINDOWED_APP);
 
 	// initialize directinput
 	DInput_Init();
@@ -417,7 +444,7 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Start_Particle_Explosion(int type, int color, int count,
+void Start_Particle_Water(int count,
 	int x, int y, int xv, int yv, int num_particles)
 {
 	// this function starts a particle explosion at the given position and velocity
@@ -430,28 +457,7 @@ void Start_Particle_Explosion(int type, int color, int count,
 		// compute random trajectory velocity
 		float vel = 2 + rand() % 4;
 
-		Start_Particle(type, color, count,
-			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
-			xv + cos_look[ang] * vel, yv + sin_look[ang] * vel);
-
-	} // end while
-
-} // end Start_Particle_Explosion
-
-void Start_Particle_Water(int type, int count,
-	int x, int y, int xv, int yv, int num_particles)
-{
-	// this function starts a particle explosion at the given position and velocity
-
-	while (--num_particles >= 0)
-	{
-		// compute random trajectory angle
-		int ang = rand() % 360;
-
-		// compute random trajectory velocity
-		float vel = 2 + rand() % 4;
-
-		Start_Particle(type, PARTICLE_COLOR_BLUE, count,
+		Start_Particle(PARTICLE_TYPE_FADE, PARTICLE_COLOR_BLUE, count,
 			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
 			xv + cos_look[ang] * vel, yv + sin_look[ang] * vel);
 
@@ -460,32 +466,6 @@ void Start_Particle_Water(int type, int count,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-void Start_Particle_Ring(int type, int color, int count,
-	int x, int y, int xv, int yv, int num_particles)
-{
-	// this function starts a particle explosion at the given position and velocity
-	// note the use of look up tables for sin,cos
-
-	// compute random velocity on outside of loop
-	float vel = 2 + rand() % 4;
-
-	while (--num_particles >= 0)
-	{
-		// compute random trajectory angle
-		int ang = rand() % 360;
-
-		// start the particle
-		Start_Particle(type, color, count,
-			x, y,
-			xv + cos_look[ang] * vel,
-			yv + sin_look[ang] * vel);
-
-	} // end while
-
-} // end Start_Particle_Ring
-
-/////////////////////////////////////////////////////////////////////////////////
 
 void Draw_Particles(void)
 {
@@ -533,6 +513,11 @@ void Process_Particles(void)
 			// translate particle
 			particles[index].x += particles[index].xv;
 			particles[index].y += particles[index].yv;
+
+			if (particles[index].y >= SCREEN_HEIGHT)
+			{
+				particles[index].state = PARTICLE_STATE_DEAD;
+			}
 
 			// update velocity based on gravity and wind
 			particles[index].xv += particle_wind;
@@ -624,7 +609,7 @@ int Game_Main(void *parms)
 	// move particles
 	Process_Particles();
 
-	Start_Particle_Water(PARTICLE_TYPE_FADE, 5,
+	Start_Particle_Water(50,
 		SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4,
 		0, 0, 1);
 
