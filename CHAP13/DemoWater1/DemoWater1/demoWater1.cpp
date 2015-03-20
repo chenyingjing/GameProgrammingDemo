@@ -102,6 +102,8 @@ int Game_Shutdown(void *parms = NULL);
 int Game_Main(void *parms = NULL);
 
 void ShowColorInPalette();
+void Draw_Ball_2D(int centreX, int centreY, int radius, int color, UCHAR *dest_buffer, int mempitch);
+
 
 void Init_Reset_Particles(void);
 void Draw_Particles(void);
@@ -623,6 +625,10 @@ int Game_Main(void *parms)
 	// draw the particles
 	Draw_Particles();
 
+	//DDraw_Lock_Back_Surface();
+	//Draw_Ball_2D(100, 100, 100, COLOR_BLUE_START, back_buffer, back_lpitch);
+	//DDraw_Unlock_Back_Surface();
+
 	// draw the title
 	Draw_Text_GDI("Particle System DEMO, Press <ESC> to Exit.", 10, 10, RGB(0, 255, 0), lpddsback);
 	Draw_Text_GDI("<G>, <B> adjusts particle gravity, <W>, <E> adjusts particle wind.", 10, 40, RGB(255, 255, 255), lpddsback);
@@ -672,6 +678,36 @@ void ShowColorInPalette()
 
 	// unlock the secondary surface
 	DDraw_Unlock_Back_Surface();
+}
+
+void Draw_Ball_2D(int centreX, int centreY, int radius, int color, UCHAR *dest_buffer, int mempitch)
+{
+	if (radius < 0)
+	{
+		return;
+	}
+	int left = centreX - radius;
+	int right = centreX + radius;
+	int top = centreY - radius;
+	int bottom = centreY + radius;
+	for (int y = top; y <= centreY; y++)
+	{
+		int leftX = left;
+		for (int x = left; x <= centreX; x++)
+		{
+			int circleX = x - centreX;
+			int circleY = y - centreY;
+			if (circleX * circleX + circleY * circleY <= radius * radius)
+			{
+				leftX = x;
+				break;
+			}
+		}
+		int rightX = centreX + (centreX - leftX);
+		int bottomY = centreY + (centreY - y);
+		Draw_Clip_Line(leftX, y, rightX, y, color, dest_buffer, mempitch);
+		Draw_Clip_Line(leftX, bottomY, rightX, bottomY, color, dest_buffer, mempitch);
+	}
 }
 
 //////////////////////////////////////////////////////////
