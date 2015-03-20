@@ -93,6 +93,12 @@ typedef struct PARTICLE_TYP
 
 } PARTICLE, *PARTICLE_PTR;
 
+struct ParticleInitStatus
+{
+	int ang;
+	float vel;
+};
+
 
 // PROTOTYPES /////////////////////////////////////////////
 
@@ -111,6 +117,7 @@ void Process_Particles(void);
 void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv);
 void Start_Particle_Water(int color, int count,
 	int x, int y, int xv, int yv, int num_particles);
+void InitparticleStatus();
 
 // GLOBALS ////////////////////////////////////////////////
 
@@ -122,6 +129,9 @@ float particle_wind = 0;    // assume it operates in the X direction
 float particle_gravity = .5; // assume it operates in the Y direction
 
 PARTICLE particles[MAX_PARTICLES]; // the particles for the particle engine
+
+#define PARTICLEINITCOUNT  10
+ParticleInitStatus particleInitStatus[PARTICLEINITCOUNT];
 
 // FUNCTIONS //////////////////////////////////////////////
 
@@ -455,13 +465,18 @@ void Start_Particle_Water(int count,
 {
 	// this function starts a particle explosion at the given position and velocity
 
+	int ang = 0;
+
+	// compute random trajectory velocity
+	float vel = 0;
+
 	while (--num_particles >= 0)
 	{
 		// compute random trajectory angle
-		int ang = rand() % 360;
+		ang = particleInitStatus[num_particles].ang;
 
 		// compute random trajectory velocity
-		float vel = 2 + rand() % 4;
+		vel = particleInitStatus[num_particles].vel;
 
 		Start_Particle(PARTICLE_TYPE_FADE, PARTICLE_COLOR_BLUE, count,
 			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
@@ -494,7 +509,8 @@ void Draw_Particles(void)
 				continue;
 
 			// draw the pixel
-			Draw_Pixel(x, y, particles[index].curr_color, back_buffer, back_lpitch);
+			//Draw_Pixel(x, y, particles[index].curr_color, back_buffer, back_lpitch);
+			Draw_Ball_2D(x, y, 5, particles[index].curr_color, back_buffer, back_lpitch);
 
 		} // end if
 
@@ -618,9 +634,17 @@ int Game_Main(void *parms)
 	// move particles
 	Process_Particles();
 
+	static int frameIndex = 0;
+
+	if (frameIndex % 66 == 0)
+	{
+		InitparticleStatus();
+	}
+	frameIndex++;
+
 	Start_Particle_Water(50,
 		SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4,
-		0, 0, 1);
+		0, 0, PARTICLEINITCOUNT);
 
 	// draw the particles
 	Draw_Particles();
@@ -697,7 +721,7 @@ void Draw_Ball_2D(int centreX, int centreY, int radius, int color, UCHAR *dest_b
 		{
 			int circleX = x - centreX;
 			int circleY = y - centreY;
-			if (circleX * circleX + circleY * circleY <= radius * radius)
+			if (circleX * circleX + circleY * circleY < radius * radius)
 			{
 				leftX = x;
 				break;
@@ -705,9 +729,21 @@ void Draw_Ball_2D(int centreX, int centreY, int radius, int color, UCHAR *dest_b
 		}
 		int rightX = centreX + (centreX - leftX);
 		int bottomY = centreY + (centreY - y);
-		Draw_Clip_Line(leftX, y, rightX, y, color, dest_buffer, mempitch);
-		Draw_Clip_Line(leftX, bottomY, rightX, bottomY, color, dest_buffer, mempitch);
+		if (leftX != rightX && y != top && bottomY != bottom)
+		{
+			Draw_Clip_Line(leftX, y, rightX, y, color, dest_buffer, mempitch);
+			Draw_Clip_Line(leftX, bottomY, rightX, bottomY, color, dest_buffer, mempitch);
+		}
 	}
 }
 
+void InitparticleStatus()
+{
+	for (int i = 0; i < PARTICLEINITCOUNT; i++)
+	{
+		particleInitStatus[i].ang = rand() % 360;
+		particleInitStatus[i].vel = 2 + rand() % 4;
+	}
+	
+}
 //////////////////////////////////////////////////////////
