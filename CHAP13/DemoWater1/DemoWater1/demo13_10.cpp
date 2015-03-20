@@ -41,7 +41,6 @@
 // defines for polygon cannon
 #define CANNON_X0       39  // position of tip of cannon
 #define CANNON_Y0       372
-//#define NUM_PROJECTILES 16  // number of projectiles
 
 // defines for particle system
 #define PARTICLE_STATE_DEAD               0
@@ -79,15 +78,6 @@
 
 // TYPES ///////////////////////////////////////////////
 
-typedef struct PROJ_TYP
-{
-	int state;      // state 0 off, 1 on
-	float x, y;      // position
-	float xv, yv;   // velocity
-	int detonate;   // tracks when the projectile detonates
-
-} PROJECTILE, *PROJECTILE_PTR;
-
 // a single particle
 typedef struct PARTICLE_TYP
 {
@@ -110,12 +100,6 @@ typedef struct PARTICLE_TYP
 int Game_Init(void *parms = NULL);
 int Game_Shutdown(void *parms = NULL);
 int Game_Main(void *parms = NULL);
-
-// missile interface
-//void Init_Projectiles(void);
-//void Move_Projectiles(void);
-//void Draw_Projectiles(void);
-//void Fire_Projectile(int angle, float vel);
 
 void Init_Reset_Particles(void);
 void Draw_Particles(void);
@@ -141,8 +125,6 @@ int cannon_ids[8]; // sound ids for cannon
 int explosion_ids[8]; // explosion ids
 
 POLYGON2D cannon; // the ship
-
-//PROJECTILE missiles[NUM_PROJECTILES]; // array of missiles
 
 float gravity_force = 0.2;  // gravity
 float wind_force = -0.01; // wind resistance
@@ -334,9 +316,6 @@ int Game_Init(void *parms)
 
 	// build the 360 degree look ups
 	Build_Sin_Cos_Tables();
-
-	// initialize the missiles
-	//Init_Projectiles();
 
 	// set clipping rectangle to screen extents so objects dont
 	// mess up at edges
@@ -644,128 +623,6 @@ void Process_Particles(void)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-//void Init_Projectiles(void)
-//{
-//	// this function initializes the projectiles
-//	memset(missiles, 0, sizeof(PROJECTILE)*NUM_PROJECTILES);
-//
-//} // end Init_Projectiles
-
-/////////////////////////////////////////////////////////////
-
-//void Move_Projectiles(void)
-//{
-//	// this function moves all the projectiles and does the physics model
-//	for (int index = 0; index < NUM_PROJECTILES; index++)
-//	{
-//		if (missiles[index].state == 1)
-//		{
-//			// translate
-//			missiles[index].x += missiles[index].xv;
-//			missiles[index].y += missiles[index].yv;
-//
-//			// apply forces
-//			missiles[index].xv += wind_force;
-//			missiles[index].yv += gravity_force;
-//
-//			// update detonatation counter
-//			if (--missiles[index].detonate <= 0)
-//			{
-//				// select a normal or ring
-//
-//				if (RAND_RANGE(0, 3) == 0)
-//				{
-//					// start a particle explosion
-//					Start_Particle_Ring(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
-//						missiles[index].x, missiles[index].y,
-//						0, 0, RAND_RANGE(75, 100));
-//				} // end if
-//				else
-//				{
-//					Start_Particle_Explosion(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
-//						missiles[index].x, missiles[index].y,
-//						0, 0, RAND_RANGE(20, 50));
-//				} // end if
-//
-//				// kill the missile
-//				missiles[index].state = 0;
-//
-//			} // end if
-//
-//			// test for off screen
-//			else
-//				if (missiles[index].x >= screen_width ||
-//					missiles[index].y >= screen_height ||
-//					missiles[index].y < 0)
-//				{
-//					// kill the missile
-//					missiles[index].state = 0;
-//				} // end if
-//
-//		} // end if on
-//
-//	} // end for index
-//
-//} // end Move_Projectiles
-
-/////////////////////////////////////////////////////////////
-
-//void Draw_Projectiles(void)
-//{
-//	// this function draws all the projectiles 
-//	for (int index = 0; index < NUM_PROJECTILES; index++)
-//	{
-//		// is this one alive?
-//		if (missiles[index].state == 1)
-//		{
-//			Draw_Rectangle(missiles[index].x - 1, missiles[index].y - 1,
-//				missiles[index].x + 1, missiles[index].y + 1,
-//				95, lpddsback);
-//		} // end if
-//
-//	} // end for index
-//
-//} // end Draw_Projectiles
-
-/////////////////////////////////////////////////////////////
-
-//void Fire_Projectile(int angle, float vel)
-//{
-//	// this function starts a projectile with the given angle and velocity 
-//	// at the tip of the cannon
-//	for (int index = 0; index < NUM_PROJECTILES; index++)
-//	{
-//		// find an open projectile
-//		if (missiles[index].state == 0)
-//		{
-//			// set this missile in motion at the head of cannon with the proper angle
-//			missiles[index].x = cannon.vlist[1].x + cannon.x0;
-//			missiles[index].y = cannon.vlist[1].y + cannon.y0;
-//
-//			// compute velocity vector based on angle
-//			missiles[index].xv = vel*cos_look[angle];
-//			missiles[index].yv = -vel*sin_look[angle];
-//
-//			// set detonation time
-//			missiles[index].detonate = RAND_RANGE(30, 40);
-//
-//			// mark as active
-//			missiles[index].state = 1;
-//
-//			// make sound
-//			//Cannon_Sound();
-//
-//			// bail
-//			break;
-//
-//		} // end if
-//
-//	} // end for index
-//
-//} // end Fire_Projectile
-
-////////////////////////////////////////////////////////////
-
 int Game_Main(void *parms)
 {
 	// this is the workhorse of your game it will be called
@@ -773,9 +630,6 @@ int Game_Main(void *parms)
 	// all the calls for you game go here!
 
 	int index; // looping var
-
-	static int   curr_angle = 0; // current angle of elevation from horizon
-	static float curr_vel = 10; // current velocity of projectile
 
 	// start the timing clock
 	Start_Clock();
@@ -794,30 +648,6 @@ int Game_Main(void *parms)
 
 	// read keyboard
 	DInput_Read_Keyboard();
-
-	// test for rotate
-	if ((curr_angle < 90) && keyboard_state[DIK_UP]) // rotate left
-	{
-		Rotate_Polygon2D_Mat(&cannon, -5);
-		curr_angle += 5;
-	} // end if
-	else
-		if ((curr_angle > 0) && keyboard_state[DIK_DOWN]) // rotate right
-		{
-			Rotate_Polygon2D_Mat(&cannon, 5);
-			curr_angle -= 5;
-		} // end if
-
-	// test for projectile velocity
-	if (keyboard_state[DIK_RIGHT])
-	{
-		if (curr_vel < 30) curr_vel += 0.1;
-	} // end if
-	else
-		if (keyboard_state[DIK_LEFT])
-		{
-			if (curr_vel > 0) curr_vel -= 0.1;
-		} // end if
 
 	// test for wind force
 	if (keyboard_state[DIK_W])
@@ -841,16 +671,6 @@ int Game_Main(void *parms)
 			if (particle_gravity > -5) particle_gravity -= 0.01;
 		} // end if
 
-	// test for fire!
-	//if (keyboard_state[DIK_LCONTROL])
-	//{
-	//	Fire_Projectile(curr_angle, curr_vel);
-
-	//} // end fire
-
-	// move all the projectiles
-	//Move_Projectiles();
-
 	// move particles
 	Process_Particles();
 
@@ -858,19 +678,12 @@ int Game_Main(void *parms)
 		SCREEN_WIDTH/2, 100,
 		0, 0, 100);
 
-	// draw the projectiles
-	//Draw_Projectiles();
-
 	// draw the particles
 	Draw_Particles();
 
 	// draw the title
 	Draw_Text_GDI("Particle System DEMO, Press <ESC> to Exit.", 10, 10, RGB(0, 255, 0), lpddsback);
-	Draw_Text_GDI("<RIGHT>, <LEFT> to adjust velocity, <UP>, <DOWN> to adjust angle", 10, 25, RGB(255, 255, 255), lpddsback);
-	Draw_Text_GDI("<G>, <B> adjusts particle gravity, <W>, <E> adjusts particle wind, <CTRL> to fire.", 10, 40, RGB(255, 255, 255), lpddsback);
-
-	sprintf(buffer, "Cannon: Ang=%d, Vel=%f", curr_angle, curr_vel);
-	Draw_Text_GDI(buffer, 10, 60, RGB(255, 255, 255), lpddsback);
+	Draw_Text_GDI("<G>, <B> adjusts particle gravity, <W>, <E> adjusts particle wind.", 10, 40, RGB(255, 255, 255), lpddsback);
 
 	sprintf(buffer, "Particle: Wind force=%f, Gravity Force=%f", particle_wind, particle_gravity);
 	Draw_Text_GDI(buffer, 10, 75, RGB(255, 255, 255), lpddsback);
