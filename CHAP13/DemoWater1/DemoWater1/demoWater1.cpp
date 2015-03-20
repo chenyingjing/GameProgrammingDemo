@@ -63,8 +63,10 @@
 #define COLOR_GREEN_START                 96
 #define COLOR_GREEN_END                   111
 
-#define COLOR_BLUE_START                  144
-#define COLOR_BLUE_END                    159
+//#define COLOR_BLUE_START                  144
+//#define COLOR_BLUE_END                    159
+#define COLOR_BLUE_START                  214
+#define COLOR_BLUE_END                    218
 
 #define COLOR_WHITE_START                 16
 #define COLOR_WHITE_END                   31
@@ -98,6 +100,8 @@ typedef struct PARTICLE_TYP
 int Game_Init(void *parms = NULL);
 int Game_Shutdown(void *parms = NULL);
 int Game_Main(void *parms = NULL);
+
+void ShowColorInPalette();
 
 void Init_Reset_Particles(void);
 void Draw_Particles(void);
@@ -584,6 +588,9 @@ int Game_Main(void *parms)
 	// read keyboard
 	DInput_Read_Keyboard();
 
+	//ShowColorInPalette();
+
+
 	// test for wind force
 	if (keyboard_state[DIK_W])
 	{
@@ -639,5 +646,32 @@ int Game_Main(void *parms)
 	return(1);
 
 } // end Game_Main
+
+void ShowColorInPalette()
+{
+	// lock back surface
+	DDraw_Lock_Back_Surface();
+
+	const int WH = 10;
+	int dx = 0;
+	int dy = 0;
+	for (int i = 0; i < MAX_COLORS_PALETTE; i++)
+	{
+		if (dx >= WINDOW_WIDTH)
+		{
+			dx = 0;
+			dy += WH;
+		}
+		Draw_QuadFP_2D(0 + dx, 0 + dy,
+			WH + dx, 0 + dy,
+			WH + dx, WH + dy,
+			0 + dx, WH + dy,
+			i, back_buffer, back_lpitch);
+		dx += WH;
+	}
+
+	// unlock the secondary surface
+	DDraw_Unlock_Back_Surface();
+}
 
 //////////////////////////////////////////////////////////
