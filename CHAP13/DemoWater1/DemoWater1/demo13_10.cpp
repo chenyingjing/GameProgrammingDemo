@@ -41,7 +41,7 @@
 // defines for polygon cannon
 #define CANNON_X0       39  // position of tip of cannon
 #define CANNON_Y0       372
-#define NUM_PROJECTILES 16  // number of projectiles
+//#define NUM_PROJECTILES 16  // number of projectiles
 
 // defines for particle system
 #define PARTICLE_STATE_DEAD               0
@@ -112,10 +112,10 @@ int Game_Shutdown(void *parms = NULL);
 int Game_Main(void *parms = NULL);
 
 // missile interface
-void Init_Projectiles(void);
-void Move_Projectiles(void);
-void Draw_Projectiles(void);
-void Fire_Projectile(int angle, float vel);
+//void Init_Projectiles(void);
+//void Move_Projectiles(void);
+//void Draw_Projectiles(void);
+//void Fire_Projectile(int angle, float vel);
 
 void Init_Reset_Particles(void);
 void Draw_Particles(void);
@@ -123,7 +123,8 @@ void Move_Particles(void);
 void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv);
 void Start_Particle_Explosion(int type, int color, int count,
 	int x, int y, int xv, int yv, int num_particles);
-
+void Start_Particle_Water(int type, int color, int count,
+	int x, int y, int xv, int yv, int num_particles);
 
 void Start_Particle_Ring(int type, int color, int count,
 	int x, int y, int xv, int yv, int num_particles);
@@ -141,7 +142,7 @@ int explosion_ids[8]; // explosion ids
 
 POLYGON2D cannon; // the ship
 
-PROJECTILE missiles[NUM_PROJECTILES]; // array of missiles
+//PROJECTILE missiles[NUM_PROJECTILES]; // array of missiles
 
 float gravity_force = 0.2;  // gravity
 float wind_force = -0.01; // wind resistance
@@ -335,7 +336,7 @@ int Game_Init(void *parms)
 	Build_Sin_Cos_Tables();
 
 	// initialize the missiles
-	Init_Projectiles();
+	//Init_Projectiles();
 
 	// set clipping rectangle to screen extents so objects dont
 	// mess up at edges
@@ -499,6 +500,27 @@ void Start_Particle_Explosion(int type, int color, int count,
 
 } // end Start_Particle_Explosion
 
+void Start_Particle_Water(int type, int count,
+	int x, int y, int xv, int yv, int num_particles)
+{
+	// this function starts a particle explosion at the given position and velocity
+
+	while (--num_particles >= 0)
+	{
+		// compute random trajectory angle
+		int ang = rand() % 360;
+
+		// compute random trajectory velocity
+		float vel = 2 + rand() % 4;
+
+		Start_Particle(type, PARTICLE_COLOR_BLUE, count,
+			x + RAND_RANGE(-4, 4), y + RAND_RANGE(-4, 4),
+			xv + cos_look[ang] * vel, yv + sin_look[ang] * vel);
+
+	} // end while
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void Start_Particle_Ring(int type, int color, int count,
@@ -622,125 +644,125 @@ void Process_Particles(void)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-void Init_Projectiles(void)
-{
-	// this function initializes the projectiles
-	memset(missiles, 0, sizeof(PROJECTILE)*NUM_PROJECTILES);
-
-} // end Init_Projectiles
-
-/////////////////////////////////////////////////////////////
-
-void Move_Projectiles(void)
-{
-	// this function moves all the projectiles and does the physics model
-	for (int index = 0; index < NUM_PROJECTILES; index++)
-	{
-		if (missiles[index].state == 1)
-		{
-			// translate
-			missiles[index].x += missiles[index].xv;
-			missiles[index].y += missiles[index].yv;
-
-			// apply forces
-			missiles[index].xv += wind_force;
-			missiles[index].yv += gravity_force;
-
-			// update detonatation counter
-			if (--missiles[index].detonate <= 0)
-			{
-				// select a normal or ring
-
-				if (RAND_RANGE(0, 3) == 0)
-				{
-					// start a particle explosion
-					Start_Particle_Ring(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
-						missiles[index].x, missiles[index].y,
-						0, 0, RAND_RANGE(75, 100));
-				} // end if
-				else
-				{
-					Start_Particle_Explosion(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
-						missiles[index].x, missiles[index].y,
-						0, 0, RAND_RANGE(20, 50));
-				} // end if
-
-				// kill the missile
-				missiles[index].state = 0;
-
-			} // end if
-
-			// test for off screen
-			else
-				if (missiles[index].x >= screen_width ||
-					missiles[index].y >= screen_height ||
-					missiles[index].y < 0)
-				{
-					// kill the missile
-					missiles[index].state = 0;
-				} // end if
-
-		} // end if on
-
-	} // end for index
-
-} // end Move_Projectiles
+//void Init_Projectiles(void)
+//{
+//	// this function initializes the projectiles
+//	memset(missiles, 0, sizeof(PROJECTILE)*NUM_PROJECTILES);
+//
+//} // end Init_Projectiles
 
 /////////////////////////////////////////////////////////////
 
-void Draw_Projectiles(void)
-{
-	// this function draws all the projectiles 
-	for (int index = 0; index < NUM_PROJECTILES; index++)
-	{
-		// is this one alive?
-		if (missiles[index].state == 1)
-		{
-			Draw_Rectangle(missiles[index].x - 1, missiles[index].y - 1,
-				missiles[index].x + 1, missiles[index].y + 1,
-				95, lpddsback);
-		} // end if
-
-	} // end for index
-
-} // end Draw_Projectiles
+//void Move_Projectiles(void)
+//{
+//	// this function moves all the projectiles and does the physics model
+//	for (int index = 0; index < NUM_PROJECTILES; index++)
+//	{
+//		if (missiles[index].state == 1)
+//		{
+//			// translate
+//			missiles[index].x += missiles[index].xv;
+//			missiles[index].y += missiles[index].yv;
+//
+//			// apply forces
+//			missiles[index].xv += wind_force;
+//			missiles[index].yv += gravity_force;
+//
+//			// update detonatation counter
+//			if (--missiles[index].detonate <= 0)
+//			{
+//				// select a normal or ring
+//
+//				if (RAND_RANGE(0, 3) == 0)
+//				{
+//					// start a particle explosion
+//					Start_Particle_Ring(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
+//						missiles[index].x, missiles[index].y,
+//						0, 0, RAND_RANGE(75, 100));
+//				} // end if
+//				else
+//				{
+//					Start_Particle_Explosion(PARTICLE_TYPE_FADE, PARTICLE_COLOR_RED + rand() % 4, RAND_RANGE(2, 5),
+//						missiles[index].x, missiles[index].y,
+//						0, 0, RAND_RANGE(20, 50));
+//				} // end if
+//
+//				// kill the missile
+//				missiles[index].state = 0;
+//
+//			} // end if
+//
+//			// test for off screen
+//			else
+//				if (missiles[index].x >= screen_width ||
+//					missiles[index].y >= screen_height ||
+//					missiles[index].y < 0)
+//				{
+//					// kill the missile
+//					missiles[index].state = 0;
+//				} // end if
+//
+//		} // end if on
+//
+//	} // end for index
+//
+//} // end Move_Projectiles
 
 /////////////////////////////////////////////////////////////
 
-void Fire_Projectile(int angle, float vel)
-{
-	// this function starts a projectile with the given angle and velocity 
-	// at the tip of the cannon
-	for (int index = 0; index < NUM_PROJECTILES; index++)
-	{
-		// find an open projectile
-		if (missiles[index].state == 0)
-		{
-			// set this missile in motion at the head of cannon with the proper angle
-			missiles[index].x = cannon.vlist[1].x + cannon.x0;
-			missiles[index].y = cannon.vlist[1].y + cannon.y0;
+//void Draw_Projectiles(void)
+//{
+//	// this function draws all the projectiles 
+//	for (int index = 0; index < NUM_PROJECTILES; index++)
+//	{
+//		// is this one alive?
+//		if (missiles[index].state == 1)
+//		{
+//			Draw_Rectangle(missiles[index].x - 1, missiles[index].y - 1,
+//				missiles[index].x + 1, missiles[index].y + 1,
+//				95, lpddsback);
+//		} // end if
+//
+//	} // end for index
+//
+//} // end Draw_Projectiles
 
-			// compute velocity vector based on angle
-			missiles[index].xv = vel*cos_look[angle];
-			missiles[index].yv = -vel*sin_look[angle];
+/////////////////////////////////////////////////////////////
 
-			// set detonation time
-			missiles[index].detonate = RAND_RANGE(30, 40);
-
-			// mark as active
-			missiles[index].state = 1;
-
-			// make sound
-			//Cannon_Sound();
-
-			// bail
-			break;
-
-		} // end if
-
-	} // end for index
-
-} // end Fire_Projectile
+//void Fire_Projectile(int angle, float vel)
+//{
+//	// this function starts a projectile with the given angle and velocity 
+//	// at the tip of the cannon
+//	for (int index = 0; index < NUM_PROJECTILES; index++)
+//	{
+//		// find an open projectile
+//		if (missiles[index].state == 0)
+//		{
+//			// set this missile in motion at the head of cannon with the proper angle
+//			missiles[index].x = cannon.vlist[1].x + cannon.x0;
+//			missiles[index].y = cannon.vlist[1].y + cannon.y0;
+//
+//			// compute velocity vector based on angle
+//			missiles[index].xv = vel*cos_look[angle];
+//			missiles[index].yv = -vel*sin_look[angle];
+//
+//			// set detonation time
+//			missiles[index].detonate = RAND_RANGE(30, 40);
+//
+//			// mark as active
+//			missiles[index].state = 1;
+//
+//			// make sound
+//			//Cannon_Sound();
+//
+//			// bail
+//			break;
+//
+//		} // end if
+//
+//	} // end for index
+//
+//} // end Fire_Projectile
 
 ////////////////////////////////////////////////////////////
 
@@ -820,20 +842,24 @@ int Game_Main(void *parms)
 		} // end if
 
 	// test for fire!
-	if (keyboard_state[DIK_LCONTROL])
-	{
-		Fire_Projectile(curr_angle, curr_vel);
+	//if (keyboard_state[DIK_LCONTROL])
+	//{
+	//	Fire_Projectile(curr_angle, curr_vel);
 
-	} // end fire
+	//} // end fire
 
 	// move all the projectiles
-	Move_Projectiles();
+	//Move_Projectiles();
 
 	// move particles
 	Process_Particles();
 
+	Start_Particle_Water(PARTICLE_TYPE_FADE, 5,
+		SCREEN_WIDTH/2, 100,
+		0, 0, 100);
+
 	// draw the projectiles
-	Draw_Projectiles();
+	//Draw_Projectiles();
 
 	// draw the particles
 	Draw_Particles();
