@@ -1,6 +1,6 @@
 // DEMO13_10.CPP - particle demo
-// to compile make sure to include DDRAW.LIB, DSOUND.LIB,
-// DINPUT.LIB, WINMM.LIB, and of course the T3DLIB files
+// to compile make sure to include DDRAW.LIB
+// DINPUT.LIB
 
 // INCLUDES ///////////////////////////////////////////////
 
@@ -37,10 +37,6 @@
 
 #define WINDOW_WIDTH    320  // size of window
 #define WINDOW_HEIGHT   240
-
-// defines for polygon cannon
-#define CANNON_X0       39  // position of tip of cannon
-#define CANNON_Y0       372
 
 // defines for particle system
 #define PARTICLE_STATE_DEAD               0
@@ -118,16 +114,6 @@ void Start_Particle_Ring(int type, int color, int count,
 HWND main_window_handle = NULL; // save the window handle
 HINSTANCE main_instance = NULL; // save the instance
 char buffer[256];                 // used to print text
-
-BITMAP_IMAGE background_bmp;      // holds the background
-
-int cannon_ids[8]; // sound ids for cannon
-int explosion_ids[8]; // explosion ids
-
-POLYGON2D cannon; // the ship
-
-float gravity_force = 0.2;  // gravity
-float wind_force = -0.01; // wind resistance
 
 float particle_wind = 0;    // assume it operates in the X direction
 float particle_gravity = .02; // assume it operates in the Y direction
@@ -278,17 +264,6 @@ int Game_Init(void *parms)
 	// start up DirectDraw (replace the parms as you desire)
 	DDraw_Init(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP);
 
-	// load background image
-	Load_Bitmap_File(&bitmap8bit, "PARTICLEGRID.BMP");
-	Create_Bitmap(&background_bmp, 0, 0, 640, 480);
-	Load_Image_Bitmap(&background_bmp, &bitmap8bit, 0, 0, BITMAP_EXTRACT_MODE_ABS);
-	Set_Palette(bitmap8bit.palette);
-	Unload_Bitmap_File(&bitmap8bit);
-
-
-	// hide the mouse
-	ShowCursor(FALSE);
-
 	// initialize directinput
 	DInput_Init();
 
@@ -297,22 +272,6 @@ int Game_Init(void *parms)
 
 	// initialize particles
 	Init_Reset_Particles();
-
-	// define points of cannon
-	VERTEX2DF cannon_vertices[4] = { 0, -2, 30, 0, 30, 2, 0, 2, };
-
-	// initialize ship
-	cannon.state = 1;   // turn it on
-	cannon.num_verts = 4;
-	cannon.x0 = CANNON_X0; // position it
-	cannon.y0 = CANNON_Y0;
-	cannon.xv = 0;
-	cannon.yv = 0;
-	cannon.color = 95; // green
-	cannon.vlist = new VERTEX2DF[cannon.num_verts];
-
-	for (index = 0; index < cannon.num_verts; index++)
-		cannon.vlist[index] = cannon_vertices[index];
 
 	// build the 360 degree look ups
 	Build_Sin_Cos_Tables();
@@ -634,17 +593,8 @@ int Game_Main(void *parms)
 	// start the timing clock
 	Start_Clock();
 
-	// lock back buffer and copy background into it
-	DDraw_Lock_Back_Surface();
-
-	// draw background
-	Draw_Bitmap(&background_bmp, back_buffer, back_lpitch, 0);
-
-	// do the graphics
-	Draw_Polygon2D(&cannon, back_buffer, back_lpitch);
-
-	// unlock back surface
-	DDraw_Unlock_Back_Surface();
+	// clear out the back buffer
+	DDraw_Fill_Surface(lpddsback, 0);
 
 	// read keyboard
 	DInput_Read_Keyboard();
@@ -675,8 +625,8 @@ int Game_Main(void *parms)
 	Process_Particles();
 
 	Start_Particle_Water(PARTICLE_TYPE_FADE, 5,
-		SCREEN_WIDTH/2, 100,
-		0, 0, 100);
+		SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4,
+		0, 0, 1);
 
 	// draw the particles
 	Draw_Particles();
@@ -698,9 +648,6 @@ int Game_Main(void *parms)
 	if (KEY_DOWN(VK_ESCAPE) || keyboard_state[DIK_ESCAPE])
 	{
 		PostMessage(main_window_handle, WM_DESTROY, 0, 0);
-
-		// do a screen transition
-		Screen_Transitions(SCREEN_DARKNESS, NULL, 0);
 	} // end if
 
 	// return success
