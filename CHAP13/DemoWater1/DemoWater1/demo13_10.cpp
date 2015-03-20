@@ -26,13 +26,9 @@
 #include <ddraw.h>  // directX includes
 #include <dsound.h>
 #include <dmksctrl.h>
-//#include <dmusici.h>
-//#include <dmusicc.h>
-//#include <dmusicf.h>
 #include <dinput.h>
 #include "T3DLIB1.h" // game library includes
 #include "T3DLIB2.h"
-//#include "T3DLIB3.h"
 
 // DEFINES ////////////////////////////////////////////////
 
@@ -316,26 +312,8 @@ DInput_Init();
 // acquire the keyboard only
 DInput_Init_Keyboard();
 
-// initilize DirectSound
-//DSound_Init();
-
 // initialize particles
 Init_Reset_Particles();
-
-// load background sounds
-//cannon_ids[0] = DSound_Load_WAV("CANNON.WAV");
-
-// clone sounds
-//for (index=1; index < 8; index++)
-//    cannon_ids[index] = DSound_Replicate_Sound(cannon_ids[0]);
-
-// load background sounds
-//explosion_ids[0] = DSound_Load_WAV("EXP1.WAV");
-
-// clone sounds
-//for (index=1; index < 8; index++)
-//    explosion_ids[index] = DSound_Replicate_Sound(explosion_ids[0]);
-
 
 // define points of cannon
 VERTEX2DF cannon_vertices[4] =  { 0,-2, 30,0, 30,2, 0,2, };
@@ -386,10 +364,6 @@ int Game_Shutdown(void *parms)
 
 // shutdown directdraw last
 DDraw_Shutdown();
-
-// now directsound
-//DSound_Stop_All_Sounds();
-//DSound_Shutdown();
 
 // shut down directinput
 DInput_Shutdown();
@@ -648,47 +622,6 @@ for (int index=0; index<MAX_PARTICLES; index++)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-//void Cannon_Sound(void)
-//{        
-//// this functions hunts for an open handle to play a cannon sound
-//
-//// start a hit sound
-//for (int sound_index=0; sound_index < 8; sound_index++)
-//    {
-//    // test if this sound is playing
-//    if (DSound_Status_Sound(cannon_ids[sound_index])==0)
-//       {
-//       DSound_Play(cannon_ids[sound_index]);
-//       break;
-//       } // end if
-//
-//     } // end for 
-//
-//} // end Cannon_Sound
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-//void Explosion_Sound(void)
-//{        
-//// this functions hunts for an open handle to play a explosion sound
-//
-//// start a hit sound
-//for (int sound_index=0; sound_index < 8; sound_index++)
-//    {
-//    // test if this sound is playing
-//    if (DSound_Status_Sound(explosion_ids[sound_index])==0)
-//       {
-//       DSound_Play(explosion_ids[sound_index]);
-//       break;
-//       } // end if
-//
-//     } // end for 
-//
-//} // end Explosion_Sound
-
-
-///////////////////////////////////////////////////////////
-
 void Init_Projectiles(void)
 {
 // this function initializes the projectiles
@@ -731,10 +664,6 @@ for (int index=0; index<NUM_PROJECTILES; index++)
                               missiles[index].x, missiles[index].y, 
                               0, 0,RAND_RANGE(20,50));
              } // end if
-
-
-           // make some noise
-           //Explosion_Sound();
 
            // kill the missile
            missiles[index].state = 0;
@@ -828,9 +757,6 @@ static float curr_vel   = 10; // current velocity of projectile
 
 // start the timing clock
 Start_Clock();
-
-// clear the drawing surface
-//DDraw_Fill_Surface(lpddsback, 0);
 
 // lock back buffer and copy background into it
 DDraw_Lock_Back_Surface();
@@ -933,9 +859,6 @@ Wait_Clock(33);
 if (KEY_DOWN(VK_ESCAPE) || keyboard_state[DIK_ESCAPE])
     {
     PostMessage(main_window_handle, WM_DESTROY,0,0);
-
-    // stop all sounds
-    //DSound_Stop_All_Sounds();
 
     // do a screen transition
     Screen_Transitions(SCREEN_DARKNESS,NULL,0);
