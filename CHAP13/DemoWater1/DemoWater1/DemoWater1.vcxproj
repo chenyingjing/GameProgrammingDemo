@@ -82,7 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="demo13_10.cpp" />
+    <ClCompile Include="demoWater1.cpp" />
     <ClCompile Include="t3dlib1.cpp" />
     <ClCompile Include="t3dlib2.cpp" />
   </ItemGroup>

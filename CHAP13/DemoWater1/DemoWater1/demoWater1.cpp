@@ -1,4 +1,4 @@
-// DEMO13_10.CPP - particle demo
+// demoWater1.cpp - particle demo
 // to compile make sure to include DDRAW.LIB
 // DINPUT.LIB
 
