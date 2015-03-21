@@ -42,7 +42,7 @@
 #define WINDOW_WIDTH    320   // size of window
 #define WINDOW_HEIGHT   240
 
-#define NUM_BALLS       10   // number of pool balls
+#define NUM_BALLS       1   // number of pool balls
 
 // extents of table
 #define TABLE_MAX_X     468
@@ -332,6 +332,11 @@ DDraw_Lock_Back_Surface();
 // draw background
 Draw_Bitmap(&background_bmp, back_buffer, back_lpitch,0);
 
+HLine(TABLE_MIN_X, TABLE_MAX_X, TABLE_MIN_Y, 100, back_buffer, back_lpitch);
+HLine(TABLE_MIN_X, TABLE_MAX_X, TABLE_MAX_Y, 100, back_buffer, back_lpitch);
+VLine(TABLE_MIN_Y, TABLE_MAX_Y, TABLE_MIN_X, 100, back_buffer, back_lpitch);
+VLine(TABLE_MIN_Y, TABLE_MAX_Y, TABLE_MAX_X, 100, back_buffer, back_lpitch);
+
 // unlock back surface
 DDraw_Unlock_Back_Surface();
 
@@ -400,7 +405,7 @@ Set_Palette(bitmap8bit.palette);
 DDraw_Flip();
 
 // sync to 30 fps = 1/30sec = 33 ms
-Wait_Clock(33);
+Wait_Clock(66);
 
 // check of user is trying to exit
 if (KEY_DOWN(VK_ESCAPE) || keyboard_state[DIK_ESCAPE])
