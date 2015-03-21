@@ -394,6 +394,8 @@ for (index=0; index < NUM_BALLS; index++)
 // draw the title
 Draw_Text_GDI("ELASTIC COLLISION DEMO",10, 10,RGB(255,255,255), lpddsback);
 
+Set_Palette(bitmap8bit.palette);
+
 // flip the surfaces
 DDraw_Flip();
 
