@@ -43,7 +43,7 @@
 #define WINDOW_WIDTH    320  // size of window
 #define WINDOW_HEIGHT   240
 
-#define NUM_BALLS       10   // number of pool balls
+#define NUM_BALLS       1   // number of pool balls
 #define BALL_RADIUS     12   // radius of ball
 
 // center position of shape
