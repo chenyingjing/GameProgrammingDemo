@@ -77,6 +77,8 @@ using namespace std;
 
 #define COLLISION_COLOR					100
 
+#define BALL_RADIUS						5
+
 
 // MACROS ///////////////////////////////////////////////
 
@@ -138,6 +140,7 @@ void Start_Particle_Water(int color, int count,
 void InitparticleStatus();
 void InitCollisionLineSegments();
 void DrawCollisionObject();
+void Compute_Collisions();
 
 // GLOBALS ////////////////////////////////////////////////
 
@@ -534,7 +537,7 @@ void Draw_Particles(void)
 
 			// draw the pixel
 			//Draw_Pixel(x, y, particles[index].curr_color, back_buffer, back_lpitch);
-			Draw_Ball_2D(x, y, 5, particles[index].curr_color, back_buffer, back_lpitch);
+			Draw_Ball_2D(x, y, BALL_RADIUS, particles[index].curr_color, back_buffer, back_lpitch);
 
 		} // end if
 
@@ -557,8 +560,8 @@ void Process_Particles(void)
 		if (particles[index].state == PARTICLE_STATE_ALIVE)
 		{
 			// translate particle
-			particles[index].x += particles[index].xv;
-			particles[index].y += particles[index].yv;
+			//particles[index].x += particles[index].xv;
+			//particles[index].y += particles[index].yv;
 
 			if (particles[index].y >= SCREEN_HEIGHT)
 			{
@@ -640,6 +643,8 @@ int Game_Main(void *parms)
 	//DDraw_Unlock_Back_Surface();
 	DrawCollisionObject();
 
+	Compute_Collisions();
+
 	// test for wind force
 	if (keyboard_state[DIK_W])
 	{
@@ -664,15 +669,16 @@ int Game_Main(void *parms)
 	Process_Particles();
 
 	static int frameIndex = 0;
-	if (frameIndex % 66 == 0)
+	if (frameIndex % 33 == 0)
 	{
 		InitparticleStatus();
+		Start_Particle_Water(50,
+			SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4,
+			0, 0, PARTICLEINITCOUNT);
 	}
 	frameIndex++;
 
-	Start_Particle_Water(50,
-		SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4,
-		0, 0, PARTICLEINITCOUNT);
+
 
 	// draw the particles
 	Draw_Particles();
@@ -687,6 +693,8 @@ int Game_Main(void *parms)
 
 	sprintf(buffer, "Particle: Wind force=%f, Gravity Force=%f", particle_wind, particle_gravity);
 	Draw_Text_GDI(buffer, 10, 75, RGB(255, 255, 255), lpddsback);
+
+	Compute_Collisions();
 
 	// flip the surfaces
 	DDraw_Flip();
@@ -802,5 +810,149 @@ void DrawCollisionObject()
 	}
 	DDraw_Unlock_Back_Surface();
 }
+
+void Compute_Collisions()
+{
+	// this function computes if any ball has hit one of the edges of the polygon
+	// if so the ball is bounced
+
+	float length, s, t, s1x, s1y, s2x, s2y, p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, xi, yi, npx, npy, Nx, Ny, Fx, Fy;
+
+
+	for (int index = 0; index < MAX_PARTICLES; index++)
+	{
+		if (particles[index].state == PARTICLE_STATE_DEAD)
+		{
+			continue;
+		}
+		
+
+		// first move particle
+		//particles[index].varsF[INDEX_X] += balls[index].varsF[INDEX_XV];
+		//particles[index].varsF[INDEX_Y] += balls[index].varsF[INDEX_YV];
+		particles[index].x += particles[index].xv;
+		particles[index].y += particles[index].yv;
+
+
+		// now project velocity vector forward and test for intersection with all lines of polygon shape
+
+		// build up vector in direction of trajectory
+		//p0x = balls[index].varsF[INDEX_X];
+		//p0y = balls[index].varsF[INDEX_Y];
+		p0x = particles[index].x;
+		p0y = particles[index].y;
+
+#if 1 // this is the velocity vector used as segment 1
+		//p1x = balls[index].varsF[INDEX_X] + balls[index].varsF[INDEX_XV];
+		//p1y = balls[index].varsF[INDEX_Y] + balls[index].varsF[INDEX_YV];
+		p1x = particles[index].x + particles[index].xv + particle_gravity + BALL_RADIUS * 1.25;
+		p1y = particles[index].y + particles[index].yv + particle_gravity + BALL_RADIUS * 1.25;
+
+		//if (p1x > p0x)
+		//{
+		//	p1x += 1;
+		//	p0x -= 1;
+		//}
+		//else
+		//{
+
+		//}
+
+		s1x = p1x - p0x;
+		s1y = p1y - p0y;
+
+		// normalize and scale to 1.25*radius
+		length = sqrt(s1x*s1x + s1y*s1y);
+		s1x = 1.25*BALL_RADIUS*s1x / length;
+		s1y = 1.25*BALL_RADIUS*s1y / length;
+		p1x = p0x + s1x;
+		p1y = p0y + s1y;
+
+
+#endif
+		size_t len = lineSegments.size();
+		// for each line try and intersect
+		//for (int line = 0; line < shape.num_verts; line++)
+		for (int line = 0; line < len; line++)
+		{
+			// now build up vector based on line
+			//p2x = shape.vlist[line].x + shape.x0;
+			//p2y = shape.vlist[line].y + shape.y0;
+			p2x = lineSegments[line].startPoint.x;
+			p2y = lineSegments[line].startPoint.y;
+
+			//p3x = shape.vlist[(line + 1) % (shape.num_verts)].x + shape.x0;
+			//p3y = shape.vlist[(line + 1) % (shape.num_verts)].y + shape.y0;
+			p3x = lineSegments[line].endPoint.x;
+			p3y = lineSegments[line].endPoint.y;
+
+			s2x = p3x - p2x;
+			s2y = p3y - p2y;
+
+#if 0 // this is the perp vector used as segment 1
+			// normalize s2x, s2y to create a perpendicular collision vector from the ball center
+			length = sqrt(s2x*s2x + s2y*s2y);
+			s1x = BALL_RADIUS*s2y / length;
+			s1y = -BALL_RADIUS*s2x / length;
+			p1x = p0x + s1x;
+			p1y = p0y + s1y;
+#endif
+			// compute s and t, the parameters
+			s = (-s1y*(p0x - p2x) + s1x*(p0y - p2y)) / (-s2x*s1y + s1x*s2y);
+			t = (s2x*(p0y - p2y) - s2y*(p0x - p2x)) / (-s2x*s1y + s1x*s2y);
+
+			// test for valid range (0..1)
+			if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+			{
+				// find collision point based on s
+				xi = p0x + s*s1x;
+				yi = p0y + s*s1y;
+
+				// now we know point of intersection, reflect ball at current location
+
+				// N = (-I . N')*N'
+				// F = 2*N + I
+				npx = -s2y;
+				npy = s2x;
+
+				// normalize p
+				length = sqrt(npx*npx + npy*npy);
+				npx /= length;
+				npy /= length;
+
+				// compute N = (-I . N')*N'
+				//Nx = -(balls[index].varsF[INDEX_XV] * npx + balls[index].varsF[INDEX_YV] * npy)*npx;
+				//Ny = -(balls[index].varsF[INDEX_XV] * npx + balls[index].varsF[INDEX_YV] * npy)*npy;
+				Nx = -(particles[index].xv * npx + particles[index].yv * npy)*npx;
+				Ny = -(particles[index].xv * npx + particles[index].yv * npy)*npy;
+
+				// compute F = 2*N + I
+				//Fx = 2 * Nx + balls[index].varsF[INDEX_XV];
+				//Fy = 2 * Ny + balls[index].varsF[INDEX_YV];
+				Fx = 2 * Nx + particles[index].xv;
+				Fy = 2 * Ny + particles[index].yv;
+
+				// update velocity with results
+				//balls[index].varsF[INDEX_XV] = Fx;
+				//balls[index].varsF[INDEX_YV] = Fy;
+				particles[index].xv = Fx * 2 / 3;
+				particles[index].yv = Fy * 2 / 3;
+
+				//balls[index].varsF[INDEX_X] += balls[index].varsF[INDEX_XV];
+				//balls[index].varsF[INDEX_Y] += balls[index].varsF[INDEX_YV];
+				particles[index].x += particles[index].xv;
+				particles[index].y += particles[index].yv;
+
+				// break out of for line
+				//break;
+
+			} // end if
+
+		} // end for line
+
+	} // end for ball index
+
+} // end Collision_Collisions
+
 
 //////////////////////////////////////////////////////////
