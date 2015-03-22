@@ -23,12 +23,16 @@
 #include <io.h>
 #include <fcntl.h>
 
+#include <vector>
+
 #include <ddraw.h>  // directX includes
 #include <dsound.h>
 #include <dmksctrl.h>
 #include <dinput.h>
 #include "T3DLIB1.h" // game library includes
 #include "T3DLIB2.h"
+
+using namespace std;
 
 // DEFINES ////////////////////////////////////////////////
 
@@ -71,6 +75,8 @@
 #define COLOR_WHITE_START                 16
 #define COLOR_WHITE_END                   31
 
+#define COLLISION_COLOR					100
+
 
 // MACROS ///////////////////////////////////////////////
 
@@ -99,6 +105,18 @@ struct ParticleInitStatus
 	float vel;
 };
 
+struct Point
+{
+	float x;
+	float y;
+};
+
+struct LineSegment
+{
+	Point startPoint;
+	Point endPoint;
+};
+
 
 // PROTOTYPES /////////////////////////////////////////////
 
@@ -118,6 +136,8 @@ void Start_Particle(int type, int color, int count, int x, int y, int xv, int yv
 void Start_Particle_Water(int color, int count,
 	int x, int y, int xv, int yv, int num_particles);
 void InitparticleStatus();
+void InitCollisionLineSegments();
+void DrawCollisionObject();
 
 // GLOBALS ////////////////////////////////////////////////
 
@@ -132,6 +152,8 @@ PARTICLE particles[MAX_PARTICLES]; // the particles for the particle engine
 
 #define PARTICLEINITCOUNT  10
 ParticleInitStatus particleInitStatus[PARTICLEINITCOUNT];
+
+vector<LineSegment> lineSegments;
 
 // FUNCTIONS //////////////////////////////////////////////
 
@@ -329,6 +351,8 @@ int Game_Init(void *parms)
 	max_clip_x = screen_width - 1;
 	min_clip_y = 0;
 	max_clip_y = screen_height - 1;
+
+	InitCollisionLineSegments();
 
 	// return success
 	return(1);
@@ -607,35 +631,39 @@ int Game_Main(void *parms)
 	DInput_Read_Keyboard();
 
 	//ShowColorInPalette();
-
+	//DDraw_Lock_Back_Surface();
+	//Draw_QuadFP_2D(SCREEN_WIDTH / 4, 400,
+	//	SCREEN_WIDTH * 3 / 4, 400,
+	//	SCREEN_WIDTH * 3 / 4, 420,
+	//	SCREEN_WIDTH / 4, 420,
+	//	100, back_buffer, back_lpitch);
+	//DDraw_Unlock_Back_Surface();
+	DrawCollisionObject();
 
 	// test for wind force
 	if (keyboard_state[DIK_W])
 	{
 		if (particle_wind < 2) particle_wind += 0.01;
 	} // end if
-	else
-		if (keyboard_state[DIK_E])
-		{
-			if (particle_wind > -2) particle_wind -= 0.01;
-		} // end if
+	else if (keyboard_state[DIK_E])
+	{
+		if (particle_wind > -2) particle_wind -= 0.01;
+	} // end if
 
 	// test for gravity force
 	if (keyboard_state[DIK_G])
 	{
 		if (particle_gravity < 5) particle_gravity += 0.01;
 	} // end if
-	else
-		if (keyboard_state[DIK_B])
-		{
-			if (particle_gravity > -5) particle_gravity -= 0.01;
-		} // end if
+	else if (keyboard_state[DIK_B])
+	{
+		if (particle_gravity > -5) particle_gravity -= 0.01;
+	} // end if
 
 	// move particles
 	Process_Particles();
 
 	static int frameIndex = 0;
-
 	if (frameIndex % 66 == 0)
 	{
 		InitparticleStatus();
@@ -744,6 +772,35 @@ void InitparticleStatus()
 		particleInitStatus[i].ang = rand() % 360;
 		particleInitStatus[i].vel = 2 + rand() % 4;
 	}
-	
+
 }
+
+void InitCollisionLineSegments()
+{
+	Point p1 = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+	Point p2 = { SCREEN_WIDTH / 2 + 100, SCREEN_HEIGHT / 2 + 100 };
+	Point p3 = { SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 100 };
+
+	LineSegment l1 = { p1, p2 };
+	LineSegment l2 = { p2, p3 };
+	LineSegment l3 = { p3, p1 };
+
+	lineSegments.push_back(l1);
+	lineSegments.push_back(l2);
+	lineSegments.push_back(l3);
+}
+
+void DrawCollisionObject()
+{
+	DDraw_Lock_Back_Surface();
+	LineSegment l;
+	size_t len = lineSegments.size();
+	for (size_t i = 0; i < len; i++) {
+		l = lineSegments[i];
+		Draw_Clip_Line(l.startPoint.x, l.startPoint.y, l.endPoint.x, l.endPoint.y,
+			COLLISION_COLOR, back_buffer, back_lpitch);
+	}
+	DDraw_Unlock_Back_Surface();
+}
+
 //////////////////////////////////////////////////////////
