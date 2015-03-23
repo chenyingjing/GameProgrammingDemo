@@ -10,8 +10,8 @@
 // default screen values, these are all overriden by the 
 // call to DDraw_Init() and are just here to have something
 // to set the globals to instead of constant values
-#define SCREEN_WIDTH        640  // size of screen
-#define SCREEN_HEIGHT       480
+#define SCREEN_WIDTH        1920  // size of screen
+#define SCREEN_HEIGHT       1080
 #define SCREEN_BPP          8    // bits per pixel
 #define MAX_COLORS_PALETTE  256
 
